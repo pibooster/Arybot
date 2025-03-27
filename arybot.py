@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler, CallbackQueryHandler
 from keep_alive import keep_alive   
@@ -22,15 +23,29 @@ WAITING_FIRST_SCREENSHOT, WAITING_SECOND_SCREENSHOT, WAITING_THIRD_SCREENSHOT = 
 # Fonction pour charger les données utilisateur
 def load_user_data():
     try:
+        # Vérifier si le fichier existe, sinon le créer avec un dict vide
+        if not os.path.exists(USER_DATA_FILE):
+            with open(USER_DATA_FILE, "w") as file:
+                json.dump({}, file)
+            return {}
+        
         with open(USER_DATA_FILE, "r") as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
+            # Vérifier si le fichier est vide
+            file_content = file.read()
+            if not file_content.strip():
+                return {}
+            return json.loads(file_content)
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement des données utilisateur: {e}")
         return {}
 
 # Fonction pour sauvegarder les données utilisateur
 def save_user_data(user_data):
-    with open(USER_DATA_FILE, "w") as file:
-        json.dump(user_data, file, indent=4)
+    try:
+        with open(USER_DATA_FILE, "w") as file:
+            json.dump(user_data, file, indent=4)
+    except Exception as e:
+        logger.error(f"Erreur lors de la sauvegarde des données utilisateur: {e}")
 
 # Fonction pour générer un lien de parrainage
 def generate_referral_link(user_id):
@@ -398,6 +413,11 @@ async def handle_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Fonction principale
 def main():
+    # Vérifier/créer le fichier JSON au démarrage
+    if not os.path.exists(USER_DATA_FILE):
+        with open(USER_DATA_FILE, "w") as file:
+            json.dump({}, file)
+    
     application = ApplicationBuilder().token("7678683447:AAFwQS5dG5xWa9aEI7NbbMMaDRhOXdEv6T4").build()
 
     # Handlers
