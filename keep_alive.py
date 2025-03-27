@@ -7,7 +7,7 @@ app = Flask('')
 # Définir une route pour la page d'accueil
 @app.route('/')
 def home():
-    return "Le bot est en ligne !"
+    return "Le bot est maintenant en ligne !"
 
 # Fonction pour exécuter l'application Flask
 def run():
